@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiro AI Farming Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div>
+                    <h1>🌾 AI Farmer</h1>
+                    <p>Your intelligent companion for modern agriculture</p>
+                </div>
+                <div class="user-info">
+                    <img id="user-avatar" src="" alt="User" class="user-avatar">
+                    <span id="user-name"></span>
+                    <button id="logout-btn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="text">💬 Text Query</button>
+            <button class="tab-btn" data-tab="image">📸 Leaf Analysis</button>
+            <button class="tab-btn" data-tab="market">📊 Market Prices</button>
+            <button class="tab-btn" data-tab="schemes">🏛️ Gov Schemes</button>
+        </div>
+
+        <!-- Text Query Tab -->
+        <div class="tab-content active" id="text-tab">
+            <div class="card">
+                <h2>Ask a Question</h2>
+                <div class="form-group">
+                    <label>Language</label>
+                    <select id="text-language">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी (Hindi)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                        <option value="mr">मराठी (Marathi)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <textarea id="text-query" placeholder="Ask about crops, diseases, fertilizers, market prices, or government schemes..." rows="4"></textarea>
+                </div>
+                <button onclick="submitTextQuery()" class="btn-primary">Submit Query</button>
+                <div id="text-response" class="response-box"></div>
+            </div>
+        </div>
+
+        <!-- Image Analysis Tab -->
+        <div class="tab-content" id="image-tab">
+            <div class="card">
+                <h2>Analyze Crop Leaf</h2>
+                <div class="form-group">
+                    <label>Upload Leaf Image</label>
+                    <input type="file" id="leaf-image" accept="image/*">
+                    <div id="image-preview"></div>
+                </div>
+                <div class="form-group">
+                    <label>Language</label>
+                    <select id="image-language">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी (Hindi)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                        <option value="mr">मराठी (Marathi)</option>
+                    </select>
+                </div>
+                <button onclick="analyzeLeaf()" class="btn-primary">Analyze Leaf</button>
+                <div id="image-response" class="response-box"></div>
+            </div>
+        </div>
+
+        <!-- Market Prices Tab -->
+        <div class="tab-content" id="market-tab">
+            <div class="card">
+                <h2>Market Prices</h2>
+                <div class="form-group">
+                    <label>Select Crop</label>
+                    <select id="crop-select">
+                        <option value="rice">Rice</option>
+                        <option value="wheat">Wheat</option>
+                        <option value="tomato">Tomato</option>
+                    </select>
+                </div>
+                <button onclick="getMarketPrices()" class="btn-primary">Get Prices</button>
+                <div id="market-response" class="response-box"></div>
+            </div>
+        </div>
+
+        <!-- Government Schemes Tab -->
+        <div class="tab-content" id="schemes-tab">
+            <div class="card">
+                <h2>Government Schemes</h2>
+                <div class="form-group">
+                    <input type="text" id="scheme-query" placeholder="Search schemes (e.g., loan, insurance, subsidy)">
+                </div>
+                <button onclick="getSchemes()" class="btn-primary">Search Schemes</button>
+                <div id="schemes-response" class="response-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Simple Authentication (No Firebase Required) -->
+    <script>
+        // Check if user is logged in
+        const userStr = localStorage.getItem('user');
+        if (!userStr) {
+            window.location.href = '/login';
+        } else {
+            const user = JSON.parse(userStr);
+            document.getElementById('user-name').textContent = user.displayName || user.email;
+            document.getElementById('user-avatar').src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || user.email);
+            window.currentUser = user;
+        }
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        });
+    </script>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

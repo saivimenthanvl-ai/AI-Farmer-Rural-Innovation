@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to AI Farmer</title>
+    <link rel="stylesheet" href="/static/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo">
+                <span class="logo-icon">🌾</span>
+            </div>
+            <h1>Welcome to AI Farmer</h1>
+            <p class="subtitle">Your intelligent companion for modern agriculture</p>
+            
+            <div class="login-form">
+                <button id="google-signin-btn" class="google-btn">
+                    <svg class="google-icon" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Sign in with Google
+                </button>
+
+                <div class="divider">
+                    <span>or</span>
+                </div>
+
+                <form id="email-login-form">
+                    <div class="input-group">
+                        <input type="email" id="email" placeholder="Email address" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="password" placeholder="Password" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword()">
+                            <span id="eye-icon">👁️</span>
+                        </button>
+                    </div>
+                    <button type="submit" class="login-btn">Log In</button>
+                </form>
+
+                <div class="links">
+                    <a href="#" id="forgot-password">Forgot password?</a>
+                    <a href="#" id="signup-link">Sign up</a>
+                </div>
+            </div>
+
+            <div class="signup-form" style="display: none;">
+                <form id="email-signup-form">
+                    <div class="input-group">
+                        <input type="text" id="signup-name" placeholder="Full Name" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="email" id="signup-email" placeholder="Email address" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="signup-password" placeholder="Password (min 6 characters)" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="tel" id="signup-phone" placeholder="Phone Number (optional)">
+                    </div>
+                    <button type="submit" class="login-btn">Create Account</button>
+                </form>
+
+                <div class="links">
+                    <a href="#" id="login-link">Already have an account? Log in</a>
+                </div>
+            </div>
+
+            <p class="terms">
+                By signing up or logging in, you consent to AI Farmer's 
+                <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Signing you in...</p>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration - REPLACE WITH YOUR CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // Show/hide loading
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        // Log user login to Firestore
+        async function logUserLogin(user) {
+            try {
+                const userRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userRef);
+                
+                const today = new Date().toISOString().split('T')[0];
+                
+                if (userDoc.exists()) {
+                    // Update existing user
+                    const userData = userDoc.data();
+                    const loginDates = userData.loginDates || [];
+                    
+                    if (!loginDates.includes(today)) {
+                        loginDates.push(today);
+                    }
+                    
+                    await updateDoc(userRef, {
+                        lastLogin: serverTimestamp(),
+                        loginDates: loginDates,
+                        totalLogins: (userData.totalLogins || 0) + 1
+                    });
+                } else {
+                    // Create new user document
+                    await setDoc(userRef, {
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || '',
+                        photoURL: user.photoURL || '',
+                        createdAt: serverTimestamp(),
+                        lastLogin: serverTimestamp(),
+                        loginDates: [today],
+                        totalLogins: 1
+                    });
+                }
+                
+                console.log('User login logged successfully');
+            } catch (error) {
+                console.error('Error logging user login:', error);
+            }
+        }
+
+        // Handle successful login
+        async function handleLoginSuccess(user) {
+            showLoading();
+            await logUserLogin(user);
+            
+            // Store user info in localStorage
+            localStorage.setItem('user', JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL
+            }));
+            
+            // Redirect to main app
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        }
+
+        // Google Sign-In
+        document.getElementById('google-signin-btn').addEventListener('click', async () => {
+            showLoading();
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                await handleLoginSuccess(result.user);
+            } catch (error) {
+                hideLoading();
+                alert('Google Sign-In failed: ' + error.message);
+            }
+        });
+
+        // Email/Password Login
+        document.getElementById('email-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const result = await signInWithEmailAndPassword(auth, email, password);
+                await handleLoginSuccess(result.user);
+            } catch (error) {
+                hideLoading();
+                alert('Login failed: ' + error.message);
+            }
+        });
+
+        // Email/Password Signup
+        document.getElementById('email-signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading();
+            
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            
+            try {
+                const result = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(result.user, { displayName: name });
+                await handleLoginSuccess(result.user);
+            } catch (error) {
+                hideLoading();
+                alert('Signup failed: ' + error.message);
+            }
+        });
+
+        // Toggle between login and signup
+        document.getElementById('signup-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelector('.login-form').style.display = 'none';
+            document.querySelector('.signup-form').style.display = 'block';
+        });
+
+        document.getElementById('login-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelector('.signup-form').style.display = 'none';
+            document.querySelector('.login-form').style.display = 'block';
+        });
+
+        // Forgot password
+        document.getElementById('forgot-password').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = prompt('Enter your email address:');
+            if (email) {
+                import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js').then(({ sendPasswordResetEmail }) => {
+                    sendPasswordResetEmail(auth, email)
+                        .then(() => alert('Password reset email sent!'))
+                        .catch((error) => alert('Error: ' + error.message));
+                });
+            }
+        });
+
+        // Check if user is already logged in
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                window.location.href = '/';
+            }
+        });
+    </script>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eye-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.textContent = '👁️‍🗨️';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.textContent = '👁️';
+            }
+        }
+    </script>
+</body>
+</html>
