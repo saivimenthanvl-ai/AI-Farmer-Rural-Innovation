@@ -1,4 +1,4 @@
-**🌾AI Farmer – Rural Innovation & Sustainable Systems**
+#🌾AI Farmer – Rural Innovation & Sustainable Systems
 (Kisan Copilot)
 
 AI Farmer (Kisan Copilot) is an AI-powered assistant for farmers designed to improve crop health decisions, market awareness, and access to government schemes using computer vision, AI reasoning, and localized insights.
