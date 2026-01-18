@@ -1,19 +1,52 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, UploadFile, File
+from pydantic import BaseModel
+from typing import List
 
-app = FastAPI(title="Kisan Copilot API")
+class DemoResponse(BaseModel):
+    disease: str
+    confidence: float
+    steps: List[str]
+    market_prices: dict
+    schemes: List[str]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.post("/demo", response_model=DemoResponse)
+async def demo_pipeline(file: UploadFile = File(...)):
+    """
+    Demo pipeline:
+    Leaf Image → Diagnosis → Advisory → Market → Schemes
+    """
 
-@app.get("/")
-def root():
-    return {"message": "Kisan Copilot backend running"}
+    # ---- MOCK CV INFERENCE ----
+    disease = "Leaf Blight"
+    confidence = 0.87
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+    # ---- ADVISORY ENGINE ----
+    steps = [
+        "Remove infected leaves",
+        "Avoid overhead irrigation",
+        "Apply recommended fungicide",
+        "Monitor crop for 7 days"
+    ]
+
+    # ---- MARKET INTELLIGENCE ----
+    market_prices = {
+        "crop": "Tomato",
+        "nearby_market": "Salem",
+        "price_per_kg": 28,
+        "trend": "Increasing"
+    }
+
+    # ---- SCHEME RAG ----
+    schemes = [
+        "PMFBY Crop Insurance Scheme",
+        "Soil Health Card Scheme",
+        "State Horticulture Subsidy"
+    ]
+
+    return DemoResponse(
+        disease=disease,
+        confidence=confidence,
+        steps=steps,
+        market_prices=market_prices,
+        schemes=schemes
+    )
