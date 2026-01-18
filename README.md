@@ -90,22 +90,7 @@ Designed for low-literacy and accessibility use cases
 🔊 Voice Summary
 
 🏗️ Architecture (High Level)
-Flutter Mobile / Web App
-        |
-        v
-FastAPI Backend (Render)
-        |
---------------------------------------------------
-| AI Orchestration Layer                         |
-|                                                |
-| 1. Image Diagnosis Service (CV placeholder)    |
-| 2. Advisory Reasoning Engine                   |
-| 3. Market Intelligence Module                  |
-| 4. Scheme Recommendation (RAG-ready)           |
-| 5. Voice & Language Pipeline                   |
---------------------------------------------------
-        |
-   Data Sources / Models
+<img width="3148" height="1820" alt="image" src="https://github.com/user-attachments/assets/1f257370-0aba-4fc3-99a5-a15e10a3b579" />
 
 🧪 Demo API Flow
 
